@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require "shellwords"
+
+def git_porcelain_files
+  file_list = `git status --porcelain`.split("\n")
+  file_list.map { |f| f[0..2] = "" }
+  file_list
+end
+
+def expand_untracked_dirs_for(file_list)
+  file_list_duplicate = file_list.dup
+
+  file_list.each_with_index do |f, index|
+    next unless f =~ /\/\Z/
+
+    file_list_duplicate.delete_at index
+
+    f_contents = Dir["#{f}**/*"]
+    f_contents.each_with_index { |c, i| f_contents.delete_at(i) if File.directory?(c) }
+
+    file_list_duplicate << f_contents
+  end
+
+  file_list_duplicate.flatten
+end
+
+def match(pattern)
+  files = expand_untracked_dirs_for git_porcelain_files
+
+  files.select! { |f| f =~ pattern }
+  files.map { |f| Shellwords.escape f }
+end
+
+exit 1 unless ARGV.count == 1
+
+puts match(/#{ARGV[0].gsub(/\//, "\/")}/)

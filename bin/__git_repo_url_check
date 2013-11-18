@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+exit 1 unless ARGV.count == 1
+
+print ARGV[0] =~ /(?:git@github.com:|https:\/\/github.com\/)?[a-z0-9-]+\/.+(\.git)?/i ? "true" : "false"
