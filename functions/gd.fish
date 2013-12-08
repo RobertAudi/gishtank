@@ -20,9 +20,12 @@ function gd --description="git diff"
   set -l files
 
   for file in $argv
-    set -l matches (__git_fuzzy_add $file)
+    set -l matches (__git_fuzzy_find $file)
     if test (count $matches) -gt 0
-      set files $files $matches
+      for match in $matches
+        test (count (echo $match | /usr/bin/grep "^[+-]")) -eq 1
+        and set files $files (echo $match | sed "s/^[+-]//")
+      end
     else
       set_color red
       echo "No matches found for $file"

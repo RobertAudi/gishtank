@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+
+require "shellwords"
+
+def git_porcelain_files
+  files = `git status --porcelain`.split("\n")
+
+  files_to_add = []
+  files_to_remove = []
+
+  files.each do |f|
+    if f =~ /\A D/
+      files_to_remove << f
+    elsif f =~ /\A[AMCU? ][^D ]/
+      files_to_add << f
+    elsif f =~ /\AR/
+      matches = f.match(/\AR[MCUD] .*? -> (?<file_to_add>.*)\Z/)
+
+      if f[1] === "D"
+        files_to_remove << matches[:file_to_add]
+      else
+        files_to_add << matches[:file_to_add]
+      end
+    end
+  end
+
+  files_to_add.each { |f| f[0..2] = "" if f =~ /\A[AMRCU? ]/ }
+  files_to_remove.each { |f| f[0..2] = "" if f =~ /\A[AMRCU? ]/ }
+
+  return files_to_add, files_to_remove
+end
+
+def expand_untracked_dirs_for(file_list)
+  file_list_duplicate = file_list.dup
+
+  file_list.each_with_index do |f, index|
+    next unless f =~ /\/\Z/
+
+    file_list_duplicate.delete_at index
+
+    f_contents = Dir["#{f}**/*"]
+    f_contents.each_with_index { |c, i| f_contents.delete_at(i) if File.directory?(c) }
+
+    file_list_duplicate << f_contents
+  end
+
+  file_list_duplicate.flatten
+end
+
+def match(pattern)
+  files_to_add, files_to_remove = git_porcelain_files
+  files_to_add = expand_untracked_dirs_for files_to_add
+
+  files_to_add.select! { |f| f =~ pattern }
+  files_to_add.map { |f| Shellwords.escape f }
+
+  files_to_remove.select! { |f| f =~ pattern }
+  files_to_remove.map { |f| Shellwords.escape f }
+
+  return files_to_add, files_to_remove
+end
+
+def match_cached(pattern)
+  files = `git diff --cached --name-only`.split("\n")
+  files.select! { |f| f =~ pattern }
+  files.map { |f| Shellwords.escape f }
+end
+
+arguments = ARGV.dup
+cached = false
+if arguments.include? "--cached"
+  arguments.delete "--cached"
+  cached = true
+end
+
+exit 1 unless arguments.count == 1
+
+pattern = arguments.first === "." ? /.*/ : /#{Regexp.escape(arguments.first)}/
+
+if cached
+  puts match_cached(pattern)
+else
+  matches = match(pattern)
+
+  matches.first.each { |m| puts "+#{m}" }
+  matches.last.each { |m| puts "-#{m}" }
+end

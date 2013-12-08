@@ -13,7 +13,7 @@ function gdc --description="git diff the staging area"
     set -l files_to_diff
 
     for file in $argv
-      set -l matches (__git_fuzzy_add_cached $file)
+      set -l matches (__git_fuzzy_find --cached $file)
       if test (count $matches) -gt 0
         set files_to_diff $files_to_diff $matches
       else

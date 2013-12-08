@@ -22,9 +22,13 @@ function gap --description="git add patch"
   set -l files_to_patch
 
   for file in $argv
-    set -l matches (__git_fuzzy_add $file)
+    set -l matches (__git_fuzzy_find $file)
     if test (count $matches) -gt 0
-      set files_to_patch $files_to_patch $matches
+      for match in $matches
+        if test (count (echo $match | /usr/bin/grep "^\+")) -eq 1
+          set files_to_patch $files_to_patch (echo $match | sed "s/^+//")
+        end
+      end
     else
       set_color red
       echo "No matches found for $file"

@@ -13,7 +13,7 @@ function grs --description="git reset"
     set -l files_to_reset
 
     for file in $argv
-      set -l matches (__git_fuzzy_add_cached $file)
+      set -l matches (__git_fuzzy_find --cached $file)
       if test (count $matches) -gt 0
         set files_to_reset $files_to_reset $matches
       else
