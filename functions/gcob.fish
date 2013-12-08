@@ -1,3 +1,4 @@
+# TAGS: checkout, branch
 function gcob --description="git checkout new branch"
   set -l argc (count $argv)
   if test $argc -eq 0

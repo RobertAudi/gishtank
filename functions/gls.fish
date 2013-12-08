@@ -1,3 +1,4 @@
+# TAGS: log, short
 function gls --description="Short git log"
   /bin/ls .git/logs > /dev/null ^/dev/null
   if test $status -ne 0

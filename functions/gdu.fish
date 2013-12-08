@@ -1,3 +1,4 @@
+# TAGS: diff, untracked
 function gdu --description="git diff for untracked files"
   if test (count (git status --porcelain)) -eq 0
     set_color yellow

@@ -1,3 +1,4 @@
+# TAGS: log, remote, branch
 function gla --description="git log accross all branches and remotes"
   /bin/ls .git/logs > /dev/null ^/dev/null
   if test $status -ne 0

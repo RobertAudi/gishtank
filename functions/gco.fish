@@ -1,3 +1,4 @@
+# TAGS: checkout
 function gco --description="git checkout"
   set -l argc (count $argv)
   if test $argc -eq 0

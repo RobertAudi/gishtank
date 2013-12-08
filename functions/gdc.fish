@@ -1,3 +1,4 @@
+# TAGS: diff, staging, cached
 function gdc --description="git diff the staging area"
   if test (git diff --name-only --cached | wc -l | tr -d ' \t') -eq 0
     set_color yellow

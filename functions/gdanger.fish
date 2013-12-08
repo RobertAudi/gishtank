@@ -1,3 +1,4 @@
+# TAGS: reset, hard
 function gdanger --description="git reset --hard"
   set -l revision
 

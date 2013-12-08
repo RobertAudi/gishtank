@@ -1,3 +1,4 @@
+# TAGS: diff
 function gd --description="git diff"
   if test (count (git status --porcelain)) -eq 0
     set_color yellow

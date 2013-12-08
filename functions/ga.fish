@@ -1,3 +1,4 @@
+# TAGS: add
 function ga --description="Fuzzy git add"
   if test (count (git status --porcelain)) -eq 0
     set_color yellow

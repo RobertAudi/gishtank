@@ -1,3 +1,4 @@
+# TAGS: add, patch, -p
 function gap --description="git add patch"
   if test (count (git status --porcelain)) -eq 0
     set_color yellow

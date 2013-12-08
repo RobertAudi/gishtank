@@ -1,3 +1,4 @@
+# TAGS: commit, verbose
 function gcv --description="git commit verbose"
   if test (count (git status --porcelain | /usr/bin/grep "^[ADMR]")) -eq 0
     set_color yellow

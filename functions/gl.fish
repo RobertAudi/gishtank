@@ -1,3 +1,4 @@
+# TAGS: log
 function gl --description="git log"
   /bin/ls .git/logs > /dev/null ^/dev/null
   if test $status -ne 0

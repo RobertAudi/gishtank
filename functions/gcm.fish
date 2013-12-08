@@ -1,3 +1,4 @@
+# TAGS: commit, message
 function gcm --description="git commit with message"
   if test (count (git status --porcelain | /usr/bin/grep "^[ADMR]")) -eq 0
     set_color yellow

@@ -1,3 +1,4 @@
+# TAGS: rm, -r, recursive
 function grmr --description="git rm"
   if test (count $argv) -eq 0
     set_color red

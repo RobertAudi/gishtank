@@ -1,3 +1,4 @@
+# TAGS: reset
 function grs --description="git reset"
   if test (git diff --name-only --cached | wc -l | tr -d ' \t') -eq 0
     set_color yellow
