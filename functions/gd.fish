@@ -46,22 +46,15 @@ function gd --description="git diff"
 end
 
 function __git_diff_default
-  set untracked_files (git ls-files --other --exclude-standard)
-  if test (count $untracked_files) -gt 0
-    git add $untracked_files > /dev/null
-  end
-
   set -l modified_files (git ls-files -m)
   if test (count $modified_files) -gt 0
-    git add $modified_files > /dev/null
+    git diff
+  else
+    set untracked_files (git ls-files --other --exclude-standard)
+    if test (count $untracked_files) -gt 0
+      git add $untracked_files > /dev/null
+      git diff --cached -- $untracked_files
+      git reset $untracked_files > /dev/null
+    end
   end
-
-  set -l files $modified_files $untracked_files
-  if test (count $files) -gt 0
-    git diff --cached --color=always -- $files
-    git reset $files > /dev/null
-  end
-
-
-  return
 end
