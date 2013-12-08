@@ -1,0 +1,4 @@
+.DS_Store
+
+git_repos_hooked*
+git_repos_not_hooked_and_blacklisted*
