@@ -36,6 +36,19 @@ function gap --description="git add patch"
     end
   end
 
-  git add -p $files_to_patch
+  if test (count $files_to_patch) -gt 0
+    git add -p $files_to_patch
+
+    if contains "verbose" $GISHTANK_ADD_OPTIONS
+      set_color green
+
+      for file in $files_to_patch
+        echo "Added $file"
+      end
+
+      set_color normal
+    end
+  end
+
   git status
 end
