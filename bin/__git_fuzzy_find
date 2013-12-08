@@ -31,20 +31,18 @@ def git_porcelain_files
 end
 
 def expand_untracked_dirs_for(file_list)
-  file_list_duplicate = file_list.dup
+  file_structure = []
 
   file_list.each_with_index do |f, index|
-    next unless f =~ /\/\Z/
-
-    file_list_duplicate.delete_at index
-
-    f_contents = Dir["#{f}**/*"]
-    f_contents.each_with_index { |c, i| f_contents.delete_at(i) if File.directory?(c) }
-
-    file_list_duplicate << f_contents
+    if f =~ /\/\Z/
+      f_contents = Dir["#{f}**/*"]
+      f_contents.each { |fc| file_structure << fc unless File.directory?(fc) }
+    else
+      file_structure << f
+    end
   end
 
-  file_list_duplicate.flatten
+  file_structure
 end
 
 def match(pattern)
