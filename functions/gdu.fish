@@ -1,5 +1,7 @@
 # TAGS: diff, untracked
 function gdu --description="git diff for untracked files"
+  emit __gishtank_command_called_event
+
   if test (count (git status --porcelain)) -eq 0
     set_color yellow
     echo "Nothing to diff..."

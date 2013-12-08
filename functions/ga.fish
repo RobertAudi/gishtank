@@ -1,5 +1,7 @@
 # TAGS: add
 function ga --description="Fuzzy git add"
+  emit __gishtank_command_called_event
+
   if test (count (git status --porcelain)) -eq 0
     set_color yellow
     echo "Nothing to add ..."

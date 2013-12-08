@@ -1,5 +1,7 @@
 # TAGS: checkout, branch
 function gcob --description="git checkout new branch"
+  emit __gishtank_command_called_event
+
   set -l argc (count $argv)
   if test $argc -eq 0
     set_color red

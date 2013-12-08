@@ -1,5 +1,7 @@
 # TAGS: log, remote, branch
 function gla --description="git log accross all branches and remotes"
+  emit __gishtank_command_called_event
+
   /bin/ls .git/logs > /dev/null ^/dev/null
   if test $status -ne 0
     set_color red

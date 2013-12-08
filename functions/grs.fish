@@ -1,5 +1,7 @@
 # TAGS: reset
 function grs --description="git reset"
+  emit __gishtank_command_called_event
+
   if test (git diff --name-only --cached | wc -l | tr -d ' \t') -eq 0
     set_color yellow
     echo "Nothing to reset..."

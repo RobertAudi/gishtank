@@ -1,0 +1,4 @@
+function __gishtank_command_called --on-event __gishtank_command_called_event
+  __gishtank_config_check_user_hooks_list
+  __gishtank_config_hooks
+end

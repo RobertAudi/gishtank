@@ -1,5 +1,7 @@
 # TAGS: diff, staging, cached
 function gdc --description="git diff the staging area"
+  emit __gishtank_command_called_event
+
   if test (git diff --name-only --cached | wc -l | tr -d ' \t') -eq 0
     set_color yellow
     echo "Nothing to diff..."

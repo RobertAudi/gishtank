@@ -1,5 +1,7 @@
 # TAGS: rm, -r, recursive
 function grmr --description="git rm"
+  emit __gishtank_command_called_event
+
   if test (count $argv) -eq 0
     set_color red
     echo "You need to list the directories to remove"

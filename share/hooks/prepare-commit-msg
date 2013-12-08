@@ -1,0 +1,27 @@
+#!/usr/local/bin/fish
+
+set -l new_commit_message_file "/tmp/gishtank_temporary_commit_message"
+echo " " | tr -d " " > $new_commit_message_file
+
+if test (count (cat $argv[1] | tail -n +2 | /usr/bin/grep "^[^#]")) -le 21 -a (count (cat $argv[1])) -lt 51
+  if test (count (cat $argv[1] | tail -n +2 | /usr/bin/grep "^[^#]")) -gt 0
+    echo "#" >> $new_commit_message_file
+    echo "# Commit diff (Status at EOF)" >> $new_commit_message_file
+    echo "#" >> $new_commit_message_file
+    cat $argv[1] | tail -n +2 | /usr/bin/grep "^[^#]" >> $new_commit_message_file
+    echo " " | tr -d " " >> $new_commit_message_file
+  end
+  /usr/bin/grep "^#" $argv[1] |tail -n +3 >> $new_commit_message_file
+else
+  /usr/bin/grep "^#" $argv[1] |tail -n +3 >> $new_commit_message_file
+  if test (count (cat $argv[1] | tail -n +2 | /usr/bin/grep "^[^#]")) -gt 0
+    echo " " | tr -d " " >> $new_commit_message_file
+    echo "#" >> $new_commit_message_file
+    echo "# Commit diff" >> $new_commit_message_file
+    echo "#" >> $new_commit_message_file
+    cat $argv[1] | tail -n +2 | /usr/bin/grep "^[^#]" >> $new_commit_message_file
+  end
+end
+
+cat $new_commit_message_file > $argv[1]
+rm -f $new_commit_message_file > /dev/null ^/dev/null
