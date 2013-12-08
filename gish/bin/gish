@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require File.join(ENV["GISHTANK_GISH_DIR"], "lib", "gish.rb")
+
+gish = Gish::Task.new arguments: ARGV
+gish.run!
