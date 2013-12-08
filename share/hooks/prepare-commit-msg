@@ -1,5 +1,13 @@
 #!/usr/local/bin/fish
 
+if test "$GIT_EDITOR" = ":"
+  exit
+end
+
+if test (count $argv) -gt 1
+  exit
+end
+
 set -l new_commit_message_file "/tmp/gishtank_temporary_commit_message"
 echo " " | tr -d " " > $new_commit_message_file
 
