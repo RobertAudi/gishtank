@@ -8,7 +8,7 @@ function gdc --description="git diff the staging area"
   end
 
   if test (count $argv) -eq 0
-    git diff --cached --color=always | more -r
+    git diff --cached
   else
     set -l files_to_diff
 
@@ -23,6 +23,6 @@ function gdc --description="git diff the staging area"
       end
     end
 
-    git diff --cached --color=always -- $files_to_diff | more -r
+    git diff --cached -- $files_to_diff
   end
 end

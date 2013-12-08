@@ -35,7 +35,7 @@ function gd --description="git diff"
 
   if test (count $files) -gt 0
     git add $files > /dev/null
-    git diff --cached --color=always -- $files | more -r
+    git diff --cached -- $files
     git reset $files > /dev/null
   else
     echo " "
