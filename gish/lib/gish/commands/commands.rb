@@ -27,54 +27,128 @@ class Gish::Commands::Commands < Gish::Commands::BasicCommand
   end
 
   def search(raw: false)
-    arguments.shift if arguments.first =~ /git/
-
     if arguments.empty?
-      puts "gish: All gishtank commands are git commands!\n\n"
-      list
+      puts red(message: "gish: Search query required")
       self.status_code = 1
       return
     end
 
+    if arguments.first =~ /\Agit\Z/
+      arguments.shift
+
+      if arguments.empty?
+        puts yellow(message: "gish: All gishtank commands are git commands!\n\n")
+        list
+        self.status_code = 1
+        return
+      end
+    end
+
     argument_list = arguments.dup
+    matched_arguments = []
+    matches = []
     commands = list(raw: true)
     command_names = commands.keys.map(&:to_s)
     tag_list = tags.dup
     results = []
 
-    until argument_list.empty?
-      if results.empty?
-        if tag_list[argument_list.first].nil?
-          command_names.map do |cmd|
-            if cmd =~ /#{argument_list.first}/
-              results << cmd.to_sym
-            end
-          end
-        else
-          results << tag_list[argument_list.first]
-          tag_list.delete(argument_list.first)
-          results.flatten!
+    if tag_list[argument_list.first].nil?
+      matching_tag_list = tag_list.select { |tag, cmd_list| tag =~ /#{argument_list.first}/ || argument_list.first =~ /#{tag}/ }
+
+      if matching_tag_list.count > 0
+        tag_list.each do |tag, cmd_list|
+          m = tag.match(/#{argument_list.first}/)
+          matches << m[0] unless m.nil?
+
+          m = argument_list.first.match(/#{tag}/)
+          matches << m[0] unless m.nil?
         end
 
-        argument_list.shift
+        results = matching_tag_list.values.flatten.uniq
+        tag_list.delete_if { |tag, cmd_list| matching_tag_list.has_key?(tag) }
       else
-        tag_list.each do |tag, cmd_list|
-          if argument_list.first == tag
-            results.delete_if { |result| !cmd_list.include?(result) }
-            argument_list.shift
+        command_names.each do |cmd|
+          m = cmd.match(/#{argument_list.first}/)
+          unless m.nil?
+            results << cmd.to_sym
+            matches << m[0]
           end
         end
       end
+    else
+      results << tag_list[argument_list.first]
+      tag_list.delete(argument_list.first)
+      results.flatten!
+      matches << argument_list.first
     end
 
     if results.empty?
-      puts "No results found for query: #{arguments.join(" ")}"
+      puts red(message: "No results found for query: ") + yellow(message: argument_list.shift) + " " + gray(message: argument_list.join(" "), bold: true)
       self.status_code = 1
       return
+    else
+      matched_arguments << argument_list.shift
+    end
+
+    commands_tags = {}
+    results.each do |result|
+      commands_tags[result] = []
+
+      tags.each do |tag, cmd_list|
+        commands_tags[result] << tag if cmd_list.include?(result)
+      end
+    end
+
+    until argument_list.empty?
+      results.keep_if do |result|
+        keep = false
+
+        m = result.to_s.match(/#{argument_list.first}/)
+        unless m.nil?
+          matches << m[0]
+          keep = true
+        end
+
+        unless keep
+          m = argument_list.first.match(/#{result}/)
+          unless m.nil?
+            matches << m[0]
+            keep = true
+          end
+        end
+
+        unless keep
+          m = commands_tags[result].grep(/#{argument_list.first}/)
+          unless m.empty?
+            matches << m
+            matches.flatten!
+            keep = true
+          end
+        end
+
+        unless keep
+          m = commands_tags[result].select { |tag| argument_list.first =~ /#{tag}/ }
+          unless m.empty?
+            matches << m
+            matches.flatten!
+            keep = true
+          end
+        end
+
+        keep
+      end
+
+      if results.empty?
+        puts red(message: "No results found for query: ") + blue(message: matched_arguments.join(" ")) + " " + yellow(message: argument_list.shift) + " " + gray(message: argument_list.join(" "), bold: true)
+        self.status_code = 1
+        return
+      else
+        matched_arguments << argument_list.shift
+      end
     end
 
     output = "Results for query: "
-    output << "#{arguments.join(" ")}\n\n"
+    output << "#{blue(message: arguments.join(" "))}\n\n"
 
     output << header("List of commands:")
 
