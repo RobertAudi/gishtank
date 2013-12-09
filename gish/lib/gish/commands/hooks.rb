@@ -199,10 +199,11 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
                           },
 
                           :"?" => -> {
-                            message = "h or H - Keep the hooked repo\n"
+                            message = "\nh or H - Keep the hooked repo\n"
                             message << "b or B - Keep the blacklisted repo\n"
                             message << "s or S - Do not do anything for now\n"
                             message << "n or N - Remove both repos\n"
+                            message << "? - Show this help message\n"
 
                             puts message
                           }
@@ -219,7 +220,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
                     end
                   end
 
-                  File.open(f, "w") { |ff| ff.puts updated_lines.join("") }
+                  File.open(f, "w") { |ff| ff.puts updated_lines.join("") unless updated_lines.empty? }
                   if hooked_repos_removed.count > 0 || blacklisted_repos_removed.count > 0
                     changed << true
                   else
@@ -234,7 +235,11 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
                   arguments.each do |arg|
                     if line =~ /#{arg}/
                       if updated_lines.include?(line)
-                        puts "Removed duplicate repo: #{line.chomp}"
+                        if type == :hooked
+                          hooked_repos_removed << line
+                        else
+                          blacklisted_repos_removed << line
+                        end
                       else
                         updated_lines << line
                       end
@@ -372,8 +377,6 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
         action.call
         if response == loop_char
           print "#{message.rstrip} "
-        else
-          puts
         end
       end
     end
