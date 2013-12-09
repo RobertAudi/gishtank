@@ -1,3 +1,5 @@
+require "fileutils"
+
 class Gish::Commands::Hooks < Gish::Commands::BasicCommand
   define_method Gish::Commands::COMMAND_EXECUTION_METHOD do
     if subcommands.empty?
@@ -19,6 +21,68 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
       end
 
       send subcommands.shift
+    end
+  end
+
+  def add
+    if arguments.empty?
+      repo = Dir.getwd
+    else
+      repo = File.expand_path(arguments.shift)
+
+      unless File.directory?(repo)
+        raise Gish::Exceptions::DirectoryNotFoundError.new directory: repo
+      end
+    end
+
+    hooks_dir = File.join(repo, ".git", "hooks")
+    unless File.directory?(hooks_dir)
+      raise Gish::Exceptions::NotAGitRepositoryError.new directory: repo
+    end
+
+    hooks_to_add = Dir[File.join(ENV["GISHTANK_HOOKS_DIR"], "*")]
+
+    unless options.empty?
+      raise Gish::Exceptions::InvalidOptionsError
+
+      # TODO: Implement options handlings
+      #
+      # Right now there is only one hook
+      # so it's not important if this
+      # functionality is not here yet
+      #
+      # Valid options:
+      #
+      # -a, --all: Add all hooks
+    end
+
+    hooks_to_add.each do |hook|
+      new_hook = File.join(hooks_dir, File.basename(hook))
+
+      hook_addition = -> {
+        hook_contents = File.open(hook, "rb").read
+
+        File.open(new_hook, "w") do |f|
+          f.puts hook_contents
+        end
+
+        FileUtils.chmod "a+x", new_hook
+
+        unless File.readlines(ENV["GISHTANK_GIT_REPOS_HOOKED"]).grep(/#{repo}/).count > 0
+          File.open(ENV["GISHTANK_GIT_REPOS_HOOKED"], "ab") { |f| f.puts repo }
+        end
+
+        puts "Added the #{File.basename(hook)} hook to the repo: #{repo}"
+      }
+
+      if File.file?(new_hook)
+        message = "This git repo already has a #{File.basename(hook)} hook\n"
+        message << "Do you want to replace it? [YynN]"
+
+        prompt message: message, &hook_addition
+      else
+        hook_addition.call
+      end
     end
   end
 
