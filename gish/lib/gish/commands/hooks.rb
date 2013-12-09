@@ -3,12 +3,12 @@ require "fileutils"
 class Gish::Commands::Hooks < Gish::Commands::BasicCommand
   define_method Gish::Commands::COMMAND_EXECUTION_METHOD do
     if subcommands.empty?
-      puts "gish: The hooks command require a subcommand\n"
+      puts red(message: "gish: The hooks command require a subcommand\n")
       Gish::Documentation::Hooks.new.show.usage
       self.status_code = 1
     else
       unless File.file?(ENV["GISHTANK_GIT_REPOS_HOOKED"]) || File.file?(ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"])
-        puts "No repos hooked or blacklisted"
+        puts yellow(message: "No repos hooked or blacklisted")
         return
       end
 
@@ -16,7 +16,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
       blacklisted_count = File.foreach(ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"]).inject(0) {|c, line| c+1}
 
       if hooked_count == 0 && blacklisted_count == 0
-        puts "No repos hooked or blacklisted"
+        puts yellow(message: "No repos hooked or blacklisted")
         return
       end
 
@@ -72,7 +72,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
           File.open(ENV["GISHTANK_GIT_REPOS_HOOKED"], "ab") { |f| f.puts repo }
         end
 
-        puts "Added the #{File.basename(hook)} hook to the repo: #{repo}"
+        puts green(message: "Added the #{File.basename(hook)} hook to the repo: #{repo}")
       }
 
       if File.file?(new_hook)
@@ -94,10 +94,10 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
 
       query = -> {
         File.unlink ENV["GISHTANK_GIT_REPOS_HOOKED"] if File.file?(ENV["GISHTANK_GIT_REPOS_HOOKED"])
-        puts "Removed list of hooked repos"
+        puts red(message: "Removed list of hooked repos")
 
         File.unlink ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"] if File.file?(ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"])
-        puts "Removed list of blacklisted repos"
+        puts red(message: "Removed list of blacklisted repos")
       }
     else
       if options.empty?
@@ -166,8 +166,8 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
                       if type == :blacklisted
                         to_add = false if blacklisted_repos_to_remove.include?(line)
                       else
-                        message = "This repo is in both hooked and blacklisted lists: #{line}\n"
-                        message << "Which entry do you want to keep? [hHbBsSnN?]"
+                        message = "\nThis repo is in both hooked and blacklisted lists: #{blue(message: line)}"
+                        message << yellow(message: "Which entry do you want to keep? [hHbBsSnN?]")
 
                         # Options:
                         # --------
@@ -256,10 +256,14 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
               end
             end
 
-            hooked_repos_removed.uniq.each { |r| puts "Removed duplicate repo from the hooked list: #{r}" }
-            blacklisted_repos_removed.uniq.each { |r| puts "Removed duplicate repo from the blacklisted list: #{r}" }
+            if changed.count(false) == files.count
+              puts yellow(message: "\nNothing changed...")
+            else
+              puts
 
-            puts "Nothing changed..." if changed.count(false) == files.count
+              hooked_repos_removed.uniq.each { |r| puts red(message: "Removed duplicate repo from the hooked list: #{r.chomp}") }
+              blacklisted_repos_removed.uniq.each { |r| puts red(message: "Removed duplicate repo from the blacklisted list: #{r.chomp}") }
+            end
           }
         elsif options =~ /\A-{1,2}h/
           notice = "You are about to remove some of the repos\n"
@@ -286,7 +290,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
           changed << remove_lines_in(file: f, lines: arguments, message: "Do you want to remove this repo from the #{type} list? [YynN] ", success: "Repo removed!")
         end
 
-        puts "Nothing changed..." if changed.count(false) == files.count
+        puts yellow(message: "\nNothing changed...") if changed.count(false) == files.count
       }
     end
 
@@ -304,7 +308,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
         puts header("Hooked repos")
         puts File.open(ENV["GISHTANK_GIT_REPOS_HOOKED"], "rb").read
       elsif only == "hooked"
-        puts "No hooked repos"
+        puts yellow(message: "No hooked repos")
       end
 
       if blacklisted_count > 0 && only != "hooked"
@@ -313,7 +317,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
         puts header("Blacklisted repos")
         puts File.open(ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"], "rb").read
       elsif only == "blacklisted"
-        puts "No blacklisted repos"
+        puts yellow(message: "No blacklisted repos")
       end
     else
       if options.empty?
@@ -378,9 +382,10 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
   end
 
   def prompt(message: "Are you sure you want to proceed? [YynN] ", &block)
-    print "#{message.rstrip} "
+    print yellow(message: "#{message.rstrip} ")
 
     response = $stdin.gets.chomp
+
     positive = response =~ /\Ay/i ? true : false
     # FIXME: Use block_given? instead
     yield if !block.nil? && positive
@@ -407,7 +412,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
       arguments.shift
 
       if arguments.empty?
-        puts "gish: Search query required"
+        puts red(message: "gish: Search query required")
         Gish::Documentation::Hooks.new.repos
         self.status_code = 1
         return
@@ -436,7 +441,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
       end
 
       if results.values.flatten.empty?
-        puts "No matched repos found."
+        puts yellow(message: "No matched repos found.")
         return
       end
 
@@ -444,13 +449,13 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
 
       unless results[:hooked].empty?
         output << header("Hooked repos")
-        output << results[:hooked].join("")
+        output << results[:hooked].map { |r| r.gsub(/(#{arguments.join("|")})*/, blue(message: '\1')) }.join("")
       end
 
       unless results[:blacklisted].empty?
         output << "\n" unless results[:hooked].empty?
         output << header("Blacklisted repos")
-        output << results[:blacklisted].join("")
+        output << results[:blacklisted].map { |r| r.gsub(/(#{arguments.join("|")})*/, blue(message: '\1')) }.join("")
       end
 
       puts output
@@ -475,7 +480,7 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
           msg << message
 
           update = prompt(message: msg) do
-            puts success
+            puts green(message: success)
           end
 
           update = !update

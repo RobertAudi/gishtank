@@ -14,7 +14,7 @@ class Gish::Task
     if ENV["GISHTANK_ENABLE_GISH_DEBUG_MODE"] == "true"
       raise e
     else
-      puts e.message
+      puts red(message: e.message)
       command.status_code = 1
     end
   end

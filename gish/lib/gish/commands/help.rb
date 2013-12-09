@@ -35,7 +35,7 @@ class Gish::Commands::Help < Gish::Commands::BasicCommand
     if ENV["GISHTANK_ENABLE_GISH_DEBUG_MODE"] == "true"
       raise e
     else
-      puts "gish: No help available for this command (#{command})"
+      puts red(message: "gish: No help available for this command (#{command})")
       @help.show.usage
       self.status_code = 1
     end
