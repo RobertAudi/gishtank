@@ -5,7 +5,7 @@ class Gish::Documentation::Help < Gish::Documentation::BasicHelp
 
     output = ""
     output << basic_usage << " <command>\n\n" if really_show
-    output << header("Commands:")
+    output << header("Commands")
 
     Gish::Commands::LIST.each do |c|
       if c === "help"
@@ -17,6 +17,19 @@ class Gish::Documentation::Help < Gish::Documentation::BasicHelp
         rescue
           desc = ""
         end
+      end
+
+      output << columnize(c, desc)
+    end
+
+    output << "\n"
+    output << header("Git Wrappers")
+
+    Gish::Commands::Git::LIST.each do |c|
+      begin
+        desc = Gish::Documentation::Commands::Git.const_get(c.capitalize).new.description
+      rescue
+        desc = ""
       end
 
       output << columnize(c, desc)

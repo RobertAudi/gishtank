@@ -83,7 +83,7 @@ class Gish::Commands::Commands < Gish::Commands::BasicCommand
     end
 
     if results.empty?
-      puts red(message: "No results found for query: ") + yellow(message: argument_list.shift) + " " + gray(message: argument_list.join(" "), bold: true)
+      puts red(message: "No results found for query: ") + yellow(message: argument_list.shift) + " " + black(message: argument_list.join(" "), bold: true)
       self.status_code = 1
       return
     else
@@ -139,7 +139,7 @@ class Gish::Commands::Commands < Gish::Commands::BasicCommand
       end
 
       if results.empty?
-        puts red(message: "No results found for query: ") + blue(message: matched_arguments.join(" ")) + " " + yellow(message: argument_list.shift) + " " + gray(message: argument_list.join(" "), bold: true)
+        puts red(message: "No results found for query: ") + blue(message: matched_arguments.join(" ")) + " " + yellow(message: argument_list.shift) + " " + black(message: argument_list.join(" "), bold: true)
         self.status_code = 1
         return
       else

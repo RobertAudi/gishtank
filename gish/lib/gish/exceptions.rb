@@ -1,6 +1,11 @@
+require_relative "./exceptions/extensions"
+
 Dir[File.dirname(__FILE__) + "/exceptions/*.rb"].each do |file|
-  require file
+  require file unless file =~ /extensions\.rb/
 end
 
-module Gish::Exceptions
+Gish::Exceptions.constants.each do |const|
+  exception = Gish::Exceptions.const_get(const)
+
+  exception.send(:include, Gish::Exceptions::Extensions::Compliant) if const.is_a?(Class)
 end

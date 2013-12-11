@@ -2,3 +2,5 @@
 
 git_repos_hooked*
 git_repos_not_hooked_and_blacklisted*
+tmp/*
+!tmp/.gitkeep

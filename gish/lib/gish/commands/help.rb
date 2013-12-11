@@ -25,7 +25,12 @@ class Gish::Commands::Help < Gish::Commands::BasicCommand
   private
 
   def help_for(command)
-    @help = Gish::Documentation.const_get(command.to_s.capitalize).new
+    begin
+      @help = Gish::Documentation.const_get(command.to_s.capitalize).new
+    rescue NameError => e
+      @help = Gish::Documentation::Commands::Git.const_get(command.to_s.capitalize).new
+    end
+
     if subcommands.empty?
       @help.show.usage
     else
@@ -44,12 +49,14 @@ class Gish::Commands::Help < Gish::Commands::BasicCommand
   def method_missing(method_name, *arguments, &block)
     if Gish::Commands::LIST.include? method_name.to_s
       send(:help_for, method_name)
+    elsif Gish::Commands::Git::LIST.include? method_name.to_s
+      send(:help_for, method_name)
     else
       raise Gish::Exceptions::CommandNotFoundError.new method_name
     end
   end
 
   def respond_to_missing?(method_name, include_private = false)
-    Gish::Commands::LIST.include? method_name.to_s || super
+    Gish::Commands::LIST.include?(method_name.to_s) || Gish::Commands::Git::LIST.include?(method_name.to_s) || super
   end
 end

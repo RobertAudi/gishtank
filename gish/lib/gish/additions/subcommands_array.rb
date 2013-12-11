@@ -10,7 +10,14 @@ class Gish::SubcommandsArray < Array
       @command = cmd
     else
       raise Gish::Exceptions::CommandNotFoundError.new cmd if cmd =~ /\Abasiccommand\Z/i
-      @command = Gish.const_get("Commands::#{cmd.capitalize}").new
+
+      if Gish::Commands::LIST.include?(cmd.to_s)
+        @command = Gish.const_get("Commands::#{cmd.capitalize}").new
+      elsif Gish::Commands::Git::LIST.include?(cmd.to_s)
+        @command = Gish.const_get("Commands::Git::#{cmd.capitalize}").new
+      else
+        raise Gish::Exceptions::CommandNotFoundError.new cmd
+      end
     end
   rescue NameError => e
     unknown_command = e.message.split.last

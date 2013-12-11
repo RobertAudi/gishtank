@@ -1,4 +1,9 @@
+require_relative "./helpers"
+
 class Gish::Task
+  include Gish::Helpers::ApplicationHelper
+  include Gish::Helpers::RainbowHelper
+
   def initialize(arguments: [])
     arguments.map!(&:strip).reject!(&:empty?)
 
@@ -37,7 +42,17 @@ class Gish::Task
 
   def command=(cmd)
     raise Gish::Exceptions::CommandNotFoundError.new cmd if cmd =~ /\Abasiccommand\Z/i
-    @command = Gish::Commands.const_get(cmd.capitalize).new
+
+    if Gish::Commands::LIST.include?(cmd)
+      @command = Gish::Commands.const_get(cmd.capitalize).new
+    elsif Gish::Commands::Git::LIST.include?(cmd)
+      @command = Gish::Commands::Git.const_get(cmd.capitalize).new
+    else
+      raise Gish::Exceptions::CommandNotFoundError.new cmd
+    end
+  rescue Gish::Exceptions::Git::TooManyChangesError, Gish::Exceptions::Git::NotAGitRepositoryError => e
+    puts red(message: e.message)
+    exit e.code
   rescue NameError => e
     unknown_command = e.message.scan(/\Auninitialized constant (.*)\Z/).first.first
     raise Gish::Exceptions::CommandNotFoundError.new(unknown_command)
