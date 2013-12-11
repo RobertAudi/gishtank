@@ -6,7 +6,7 @@
 #  |___/
 #
 
-set -gx GISHTANK_DIR $HOME/.gishtank
+set -gx GISHTANK_DIR (dirname (status -f))
 set -gx GISHTANK_ERROR_FILE $GISHTANK_DIR/tmp/error.out
 set -gx GISHTANK_GISH_DIR $GISHTANK_DIR/gish
 set -gx GISHTANK_GISH_INCLUDE_DIR $GISHTANK_GISH_DIR/include
