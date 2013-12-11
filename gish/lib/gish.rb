@@ -6,8 +6,7 @@ module Gish
   CMD_METHOD_SUFFIX = "_command"
   DOC_METHOD_SUFFIX = "_doc"
 
-  COMPONENTS = %w(exceptions additions documentation commands  task)
-
+  COMPONENTS = %w(exceptions additions documentation commands task)
 end
 
 Gish::COMPONENTS.each do |component|
