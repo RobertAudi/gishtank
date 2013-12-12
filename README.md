@@ -8,22 +8,97 @@ Gishtank
 
 *(Reference: [Urban Dictionary](http://gish.urbanup.com/6946625))*
 
+Requirements
+------------
+
+Gishtank uses ruby for the `git status` wrapper and for the `gish` tool. Other than that, there are no requirements other than `git` and `fish`.
+
+- Fish
+- Git
+- Ruby 2.0+ - **Ruby 1.8 and 1.9 not supported!**
+
+Also, I only tested gishtank on OS X, but there shouldn't be any problems on other Unix-based systems.
+
 Installation
 ------------
 
-First, clone the repository in your home directory:
+First, clone the repository in your home directory (or anywhere else):
 
-~~~
-% cd
+```
 % git clone https://github.com/AzizLight/gishtank $HOME/.gishtank
-~~~
+```
 
-And add the `bin` directory in the `PATH` and the functions directory to the `fish_function_path` in `$HOME/.config/fish/config.fish`:
+In your Fish config file (`$HOME/.config/fish/config.fish`), source the gishtank init script:
 
-~~~
-set fish_user_paths $HOME/.gishtank/bin $fish_user_paths
-set fish_function_path $HOME/.gishtank/functions $fish_function_path
-~~~
+```
+. $HOME/.gishtank/gtinit.fish
+```
+
+You're done!
+
+Configuration
+-------------
+
+There are a couple of environment variable that you can set to customize gishtank.
+
+
+### `GISHTANK_ADD_OPTIONS`
+
+This environment variable lets you customize a bit the functionality of the `add` commands. At the moment, there is only one option available: `verbose`. It lets you increase the verbosity of the `add` commands. With this options, everytime a file is added to the staging area (this includes the removal of files as well), a message will appear to notify you.
+
+```
+set -gx GISHTANK_ADD_OPTIONS "verbose"
+```
+
+### `GISHTANK_HOOKS`
+
+Gishtank comes with hooks. Right now, there is only one hook (`prepare-commit-msg`), but more will come (hopefully). You can specify which hooks to use in your projects by adding its name to this environment variable. The hook(s) will then be copied to your git repo when you navigate to it. That will only happen if you do not already have a hook of the same name in your git repo. If you do, gishtank will ask you if you want to replace it, and it will memorize your choice (so it will only ask once per repo).
+
+```
+set -gx GISHTANK_HOOKS "prepare-commit-msg"
+```
+
+### `GISHTANK_GISH_STATUS_MAX_CHANGES`
+
+The improved status script from `scm_breeze` was ported to gishtank. This environment variable represents the maximum number of changes that gishtank will display. If there are too many files in the `git status` output, gishtank will fallback to the native `git status` command, for performance reasons. If you experience lagging, try to lower the value of this variable. The default is `150`.
+
+```
+set -gx GISHTANK_GISH_STATUS_MAX_CHANGES "150"
+```
+
+Gish
+----
+
+Gish is a Ruby tool. As of today, it has the following features:
+
+- List and search gishtank's commands
+- Manage the git repos that have been "hooked" by gishtank
+
+More information on gish can be found in its [README](https://github.com/AzizLight/gishtank/tree/master/gish/README.md).
+
+Credits
+-------
+
+- Nathan Broadbent - Creator of [`scm_breeze`](https://github.com/ndbroadbent/scm_breeze)
+
+`scm_breeze` is the reason why I started this project. It is my main source of inspiration.
+
+Contributing
+------------
+
+1. Fork it.
+2. Create a branch (`git checkout -b awesome-feature`)
+3. Commit your changes (`git commit -am "Add AWESOME feature"`)
+4. Push to the branch (`git push origin awesome-feature`)
+5. Open a [Pull Request](https://github.com/AzizLight/gishtank/pulls)
+
+### Guidelines
+
+- The first line of a commit message should be:
+    * Short
+    * In the present tense
+- The first line of a commit message **MUST NOT** end with a punctuation mark (i.e.: `.` or `!`)
+- If the commit has a lot of changes (which should NOT happen by the way), add a description after the commit message containing a list of the changes (among other things).
 
 License
 -------
