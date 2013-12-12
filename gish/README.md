@@ -82,7 +82,7 @@ The `list` subcommand is the default one, so calling the `commands` command with
 % gish commands
 ```
 
-### Search gishtank's commands
+#### Search gishtank's commands
 
 The `search` subcommand lets you search for commands. You can provide the name of a command, a tag that represents it and both or part of those.
 
