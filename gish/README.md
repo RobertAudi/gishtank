@@ -106,7 +106,7 @@ Example:
 
 Here are more examples:
 
-#### Using (part of) the name of a gishtank command
+##### Using (part of) the name of a gishtank command
 
 ```sh
 % gish commands search gc
@@ -128,7 +128,7 @@ gcob                 git checkout new branch
 gcv                  git commit verbose
 ```
 
-#### Using (part of) a tag
+##### Using (part of) a tag
 
 ```sh
 % gish commands search commit
@@ -146,13 +146,13 @@ gcv                  git commit verbose
 gdl                  git diff last commit
 ```
 
-#### Combining (part of) a gishtank command and (part of) a tag
+##### Combining (part of) a gishtank command and (part of) a tag
 
 ```sh
 % gish commands search gc branch
 ```
 
-Ouput:
+Output:
 
 ```
 Results for query: gc branch
@@ -211,7 +211,7 @@ Examples:
 	$ gish hooks repos search -b dotfiles
 ```
 
-#### List repositories
+##### List repositories
 
 You can see the list of hooked and/or blacklisted repositories using the `list` subcommand:
 
@@ -239,7 +239,7 @@ Blacklisted repos
 
 The `-h` and `-b` options will list only the hooked repositories or only the blacklisted repositories (respectively).
 
-#### Search repositories
+##### Search repositories
 
 You can search the list of hooked/blacklisted repositories using the `search` subcommand:
 
@@ -264,3 +264,44 @@ Blacklisted repos
 ```
 
 You can also use the `-h` and `-b` options to narrow the scope of the search.
+
+#### Clean the lists
+
+You can clean the list of hooked and blacklisted repositories using the `clean` subcommand.
+
+```
+Usage: gish hooks clean [<option>] [<query> ...]
+
+Remove items from the list of hooked and blacklisted repos.
+By passing an option or a query, specific repos can be removed.
+
+Options
+-------
+
+-h, --hooked-only              Apply to hooked repos only
+-b, --blacklisted-only         Apply to blacklisted repos only
+-d, --remove-duplicates        Remove duplicates from the lists
+
+NOTE: Only one filter option can be used at once!
+
+Examples:
+	$ gish hooks clean -h gishtank
+	$ gish hooks clean -b dotfiles
+	$ gish hooks clean -d
+	$ gish hooks clean -h -d
+	$ gish hooks clean -d foo
+```
+
+This subcommand is all about options. If you don't pass any options, the list of hooked and blacklisted repositories will be deleted.
+
+The `-h` and `-b` options will force the changes to take place on hookes or blacklisted repositories only (respectively). ***Note:** only ONE of those two options can be used at once!*
+
+The `-d` option (which can be used in conjunction with one of the filtering options) will only remove duplicates from the lists. When a repository appears in both hooked and blacklisted lists, a prompt will show up, and you will have the choice between five options:
+
+- `h` or `H`: Keep the repository in the hooked list, remove all its occurences from the blacklisted list, and remove all duplicates from both lists.
+- `b` or `B`: Keep the repository in the blacklisted list, remove all its occurences from the hooked list, and remove all duplicates from both lists.
+- `s` or `S`: Skip the cleaning. In other words, no action will be taken.
+- `n` or `N`: Remove **ALL** occurences of the repository in both lists.
+- `?`: Show the list of options.
+
+No matter what option(s) you passed, one or more keywords can be passed to the `clean` subcommand. Those keywords will filter out any repository that does not match them. ***Note:** keywords are independent of each other!*
