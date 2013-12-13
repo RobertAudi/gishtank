@@ -305,3 +305,12 @@ The `-d` option (which can be used in conjunction with one of the filtering opti
 - `?`: Show the list of options.
 
 No matter what option(s) you passed, one or more keywords can be passed to the `clean` subcommand. Those keywords will filter out any repository that does not match them. ***Note:** keywords are independent of each other!*
+
+Git wrappers
+------------
+
+Gishtank is mainly about git aliases and wrapper functions. Some wrappers (only one at the moment) are written in Ruby, and so are part of gish. You can use those wrappers through gish or directly using their alias.
+
+### Status
+
+This wrapper is coming from `scm_breeze`. I rewrote the ruby script into a class to integrate it to gish, but the code is (almost) the same, and the output is **exactly** the same. So **THANKS A LOT** to the creator of `scm_breeze`!
