@@ -19,7 +19,10 @@ set -gx GISHTANK_GIT_REPOS_HOOKED $GISHTANK_DIR/git_repos_hooked
 set -gx GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED $GISHTANK_DIR/git_repos_not_hooked_and_blacklisted
 
 for function_dir in (/bin/ls -d $GISHTANK_DIR/functions/*/)
-  set fish_function_path $function_dir $fish_function_path
+  # Do not add the work-in-progress functions to the function path automatically
+  if test (count (echo $function_dir | /usr/bin/grep "wip")) -eq 0
+    set fish_function_path $function_dir $fish_function_path
+  end
 end
 
 set fish_function_path $GISHTANK_DIR/functions $fish_function_path
