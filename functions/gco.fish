@@ -29,7 +29,7 @@ function gco --description="git checkout"
           set_color normal
         end
 
-        git status
+        gs
       else
         set_color red
         echo "The $argv[1] branch doesn't exist..."

@@ -10,5 +10,5 @@ function gau --description="Add all untracked files to git"
   end
 
   git add (git ls-files --other --exclude-standard | grep "$argv")
-  git status
+  gs
 end

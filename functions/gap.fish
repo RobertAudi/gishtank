@@ -11,13 +11,13 @@ function gap --description="git add patch"
 
   if test (count $argv) -eq 0
     git add -p .
-    git status
+    gs
     return
   end
 
   if test $argv[1] = "."
     git add -p .
-    git status
+    gs
     return
   end
 
@@ -52,5 +52,5 @@ function gap --description="git add patch"
     end
   end
 
-  git status
+  gs
 end

@@ -16,6 +16,6 @@ function gcm --description="git commit with message"
     return 1
   else
     git commit -m "$argv"
-    git status
+    gs
   end
 end

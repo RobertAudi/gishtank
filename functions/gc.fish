@@ -10,5 +10,5 @@ function gc --description="git commit"
   end
 
   git commit $argv
-  git status
+  gs
 end

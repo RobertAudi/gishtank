@@ -20,5 +20,5 @@ function grmr --description="git rm"
     end
   end
 
-  git status
+  gs
 end

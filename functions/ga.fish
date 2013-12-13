@@ -11,13 +11,13 @@ function ga --description="Fuzzy git add"
 
   if test (count $argv) -eq 0
     __git_add_or_remove "."
-    git status
+    gs
     return
   end
 
   if test $argv[1] = "."
     __git_add_or_remove "."
-    git status
+    gs
     return
   end
 
@@ -25,7 +25,7 @@ function ga --description="Fuzzy git add"
     __git_add_or_remove $file
   end
 
-  git status
+  gs
 end
 
 function __git_add_or_remove

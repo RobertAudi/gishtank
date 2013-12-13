@@ -10,5 +10,5 @@ function gcv --description="git commit verbose"
   end
 
   git commit --verbose $argv
-  git status
+  gs
 end

@@ -41,7 +41,7 @@ function gd --description="git diff"
     git reset $files > /dev/null
   else
     echo " "
-    git status
+    gs
   end
 end
 

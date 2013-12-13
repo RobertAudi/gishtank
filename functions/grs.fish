@@ -28,5 +28,5 @@ function grs --description="git reset"
     echo -n $files_to_reset | xargs git reset > /dev/null ^/dev/null
   end
 
-  git status
+  gs
 end

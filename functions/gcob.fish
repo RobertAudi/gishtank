@@ -28,7 +28,7 @@ function gcob --description="git checkout new branch"
         echo "Switched to a new branch '$argv[1]'"
         set_color normal
 
-        git status
+        gs
       end
     end
   end
