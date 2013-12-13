@@ -314,3 +314,7 @@ Gishtank is mainly about git aliases and wrapper functions. Some wrappers (only 
 ### Status
 
 This wrapper is coming from `scm_breeze`. I rewrote the ruby script into a class to integrate it to gish, but the code is (almost) the same, and the output is **exactly** the same. So **THANKS A LOT** to the creator of `scm_breeze`!
+
+```
+% gish status
+```
