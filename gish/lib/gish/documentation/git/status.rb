@@ -1,4 +1,4 @@
-class Gish::Documentation::Commands::Git::Status < Gish::Documentation::BasicHelp
+class Gish::Documentation::Git::Status < Gish::Documentation::BasicHelp
   def usage
     output = ""
     output << basic_usage << " status\n\n"

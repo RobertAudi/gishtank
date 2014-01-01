@@ -1,35 +1,8 @@
-class Gish::SubcommandsArray < Array
+class Gish::SubcommandsArray < Gish::CommandableArray
   MAX_SUBCOMMANDS = 2
 
-  def initialize(cmd)
-    self.command = cmd
-  end
-
-  def command=(cmd)
-    if cmd.class.to_s =~ /\AGish::Commands::.*\Z/
-      @command = cmd
-    else
-      raise Gish::Exceptions::CommandNotFoundError.new cmd if cmd =~ /\Abasiccommand\Z/i
-
-      if Gish::Commands::LIST.include?(cmd.to_s)
-        @command = Gish.const_get("Commands::#{cmd.capitalize}").new
-      elsif Gish::Commands::Git::LIST.include?(cmd.to_s)
-        @command = Gish.const_get("Commands::Git::#{cmd.capitalize}").new
-      else
-        raise Gish::Exceptions::CommandNotFoundError.new cmd
-      end
-    end
-  rescue NameError => e
-    unknown_command = e.message.split.last
-    raise Gish::Exceptions::CommandNotFoundError.new(unknown_command)
-  end
-
-  def command
-    @command ||= Gish::Commands::Help.new
-  end
-
   def <<(item)
-    unless item.nil?
+    unless item.nil? || option?(item) || !has_subcommands?
       begin
         self.command = fetch(count - 1) unless empty?
       rescue Gish::Exceptions::CommandNotFoundError
@@ -57,6 +30,10 @@ class Gish::SubcommandsArray < Array
   end
 
   private
+
+  def has_subcommands?
+    command.class.has_subcommands?
+  end
 
   def subcommands
     command.class.subcommands

@@ -27,7 +27,7 @@ class Gish::Documentation::Help < Gish::Documentation::BasicHelp
 
     Gish::Commands::Git::LIST.each do |c|
       begin
-        desc = Gish::Documentation::Commands::Git.const_get(c.capitalize).new.description
+        desc = Gish::Documentation::Git.const_get(c.capitalize).new.description
       rescue
         desc = ""
       end

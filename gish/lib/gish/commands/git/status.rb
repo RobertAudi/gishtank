@@ -1,4 +1,4 @@
-class Gish::Commands::Git::Status < Gish::Commands::BasicCommand
+class Gish::Commands::Git::Status < Gish::Commands::Git::BasicCommand
   COLORS = {
     paint_rst:    [:white,  false],  # Reset
     paint_del:    [:red,    false],  # Deleted
@@ -21,9 +21,7 @@ class Gish::Commands::Git::Status < Gish::Commands::BasicCommand
   }
 
   def initialize
-    @project_root = File.directory?(File.join(Dir.getwd, ".git")) ? Dir.getwd : `\git rev-parse --show-toplevel 2> /dev/null`.strip
-
-    raise Gish::Exceptions::Git::NotAGitRepositoryError.new directory: Dir.getwd if @project_root.empty?
+    super
 
     @status = `\git status --porcelain 2> /dev/null`
 
@@ -90,11 +88,19 @@ class Gish::Commands::Git::Status < Gish::Commands::BasicCommand
       [:untracked,               'Untracked files']
     ]
 
+    # FIXME: Check if the first arg is a valid filter
+    if !arguments.empty? && groups_spec.map(&:first).map(&:to_s).grep(/\A#{arguments.first}\Z/).count == 0 && arguments.first !~ /\A\d+\Z/
+      output.prepend red(message: "Invalid status filter: #{arguments.first}\n\n")
+      valid_status_filter = false
+    else
+      valid_status_filter = true
+    end
+
     groups_spec.each_with_index do |data, i|
       group, heading = *data
 
       # Allow filtering by specific group (by string or integer)
-      if arguments.empty? || arguments.first == group.to_s || arguments.first == (i + 1).to_s
+      if !valid_status_filter || arguments.empty? || arguments.first == group.to_s || arguments.first == (i + 1).to_s
         unless @stats[group].empty?
           output << send("paint_#{group}", message: "\u27A4".encode("utf-8"), bold: true)
           output << paint_header(message: "  #{heading}\n")
@@ -140,7 +146,7 @@ class Gish::Commands::Git::Status < Gish::Commands::BasicCommand
   def index_modification_states
     @changes.each do |change|
       # FIXME: Rename x and y to something more meaningful
-      x, y, file = change[0, 1], change[1, 1], change[3..-1]
+      x, y, file = change[0, 1], change[1, 1], change[2..-1]
 
       # Fetch the long git status once, but only if any submodules have changed
       if @long_status.nil? && has_modules?
@@ -169,7 +175,6 @@ class Gish::Commands::Git::Status < Gish::Commands::BasicCommand
       when /T./; ["typechange",       :paint_typ, :staged]
       when "??"; [" untracked",       :paint_unt, :untracked]
       end
-
 
       # Store data
       @stats[group] << { message: message, colour: colour, file: file } if message

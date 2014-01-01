@@ -30,11 +30,11 @@ class Gish::Documentation::Hooks < Gish::Documentation::BasicHelp
     output << "\n\nRemove items from the list of hooked and blacklisted repos.\n"
     output << "By passing an option or a query, specific repos can be removed.\n\n"
 
-    gap = 30
+    formatting = { left_gap: 30 }
     output << header("Options")
-    output << columnize("-h, --hooked-only", "Apply to hooked repos only", gap: gap)
-    output << columnize("-b, --blacklisted-only", "Apply to blacklisted repos only", gap: gap)
-    output << columnize("-d, --remove-duplicates", "Remove duplicates from the lists", gap: gap)
+    output << columnize("-h, --hooked-only", "Apply to hooked repos only", formatting: formatting)
+    output << columnize("-b, --blacklisted-only", "Apply to blacklisted repos only", formatting: formatting)
+    output << columnize("-d, --remove-duplicates", "Remove duplicates from the lists", formatting: formatting)
     output << "\n"
     output << "NOTE: Only one filter option can be used at once!\n\n"
 
@@ -57,16 +57,15 @@ class Gish::Documentation::Hooks < Gish::Documentation::BasicHelp
     output << "\n\List or search repos in the hooked and blacklisted lists.\n"
     output << "By passing an option or a query, specific repos can be listed or searched.\n\n"
 
-    gap = 30
-
+    formatting = { left_gap: 30 }
     output << header("Subcommands")
-    output << columnize("list", "List repos (implied)", gap: gap)
-    output << columnize("search", "Search for a repo", gap: gap)
+    output << columnize("list", "List repos (implied)", formatting: formatting)
+    output << columnize("search", "Search for a repo", formatting: formatting)
     output << "\n"
 
     output << header("Options")
-    output << columnize("-h, --hooked-only", "Apply to hooked repos only", gap: gap)
-    output << columnize("-b, --blacklisted-only", "Apply to blacklisted repos only", gap: gap)
+    output << columnize("-h, --hooked-only", "Apply to hooked repos only", formatting: formatting)
+    output << columnize("-b, --blacklisted-only", "Apply to blacklisted repos only", formatting: formatting)
     output << "\n"
     output << "NOTE: Only one option can be used at once!\n\n"
 

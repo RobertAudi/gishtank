@@ -1,6 +1,6 @@
 module Gish::Exceptions
   class InvalidOptionsError < ArgumentError
-    def initialize(options = [], message: "")
+    def initialize(options: [], message: "")
       raise ArgumentError if !options.empty? && !message.empty?
 
       if message.empty?

@@ -17,5 +17,5 @@ end
 Gish::Exceptions::Git.constants.each do |const|
   exception = Gish::Exceptions::Git.const_get(const)
 
-  exception.send(:include, Gish::Exceptions::Extensions::Compliant) if exception.is_a?(Class)
+  exception.send(:include, Gish::Concerns::CompliantError) if exception.is_a?(Class)
 end

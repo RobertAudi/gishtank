@@ -1,6 +1,6 @@
 module Gish::Exceptions
   class DuplicateOptionsError < ArgumentError
-    def initialize(options = [], message: "")
+    def initialize(options: [], message: "")
       raise ArgumentError if !options.empty? && !message.empty?
 
       if message.empty?

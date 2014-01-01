@@ -11,9 +11,6 @@ class Gish::Task
       self.command = "help"
     else
       self.command = arguments.shift
-      2.times { arguments.shift if command.subcommands << arguments.first }
-      command.arguments = arguments
-      command.task = self
     end
   rescue Gish::Exceptions::CommandNotFoundError => e
     if ENV["GISHTANK_ENABLE_GISH_DEBUG_MODE"] == "true"
@@ -22,6 +19,10 @@ class Gish::Task
       puts red(message: e.message)
       command.status_code = 1
     end
+  ensure
+    2.times { arguments.shift if command.subcommands << arguments.first }
+    command.arguments = arguments
+    command.task = self
   end
 
   def run!

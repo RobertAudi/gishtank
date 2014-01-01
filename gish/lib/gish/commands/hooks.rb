@@ -1,6 +1,20 @@
 require "fileutils"
 
 class Gish::Commands::Hooks < Gish::Commands::BasicCommand
+  def initialize
+    @valid_options = {
+      root: [
+        %w(-h --hooked-only),
+        %w(-b --blacklisted-only)
+      ],
+      clean: [
+        %w(-d --remove-duplicates)
+      ]
+    }
+
+    @options_cleaned = false
+  end
+
   define_method Gish::Commands::COMMAND_EXECUTION_METHOD do
     if subcommands.empty?
       puts red(message: "gish: The hooks command require a subcommand\n")
@@ -87,20 +101,20 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
   end
 
   def clean
-    if arguments.empty?
-      notice = "You are about to remove all the repos\n"
-      notice << "from the hooked and blacklisted list!\n"
-      notice << "Are you sure you want to proceed? [YynN]"
+    if options.empty?
+      if arguments.empty?
+        notice = "You are about to remove all the repos\n"
+        notice << "from the hooked and blacklisted list!\n"
+        notice << "Are you sure you want to proceed? [YynN]"
 
-      query = -> {
-        File.unlink ENV["GISHTANK_GIT_REPOS_HOOKED"] if File.file?(ENV["GISHTANK_GIT_REPOS_HOOKED"])
-        puts red(message: "Removed list of hooked repos")
+        query = -> {
+          File.unlink ENV["GISHTANK_GIT_REPOS_HOOKED"] if File.file?(ENV["GISHTANK_GIT_REPOS_HOOKED"])
+          puts red(message: "Removed list of hooked repos")
 
-        File.unlink ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"] if File.file?(ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"])
-        puts red(message: "Removed list of blacklisted repos")
-      }
-    else
-      if options.empty?
+          File.unlink ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"] if File.file?(ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"])
+          puts red(message: "Removed list of blacklisted repos")
+        }
+      else
         notice = "You are about to remove some of the repos\n"
         notice << "from the hooked and blacklisted list!\n"
         notice << "Are you sure you want to proceed? [YynN]"
@@ -109,168 +123,174 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
           hooked: ENV["GISHTANK_GIT_REPOS_HOOKED"],
           blacklisted: ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"]
         }
-      else
-        if options =~ /-d|--r/
-          notice = "You are about to remove duplicates\n"
+      end
+    else
+      if options =~ /-d|--r/
+        notice = "You are about to remove duplicates\n"
 
-          if options =~ /-{1,2}h/
-            notice << "from the hooked repos list!\n"
-            files = {
-              hooked: ENV["GISHTANK_GIT_REPOS_HOOKED"]
-            }
-          elsif options =~ /-{1,2}b/
-            notice << "from the blacklisted repos list!\n"
-            files = {
-              blacklisted: ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"]
-            }
-          else
-            notice << "from the hooked and blacklisted repos lists!\n"
-            files = {
-              hooked: ENV["GISHTANK_GIT_REPOS_HOOKED"],
-              blacklisted: ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"]
-            }
-          end
+        if options =~ /-{1,2}h/
+          notice << "from the hooked repos list!\n"
+          files = {
+            hooked: ENV["GISHTANK_GIT_REPOS_HOOKED"]
+          }
+        elsif options =~ /-{1,2}b/
+          notice << "from the blacklisted repos list!\n"
+          files = {
+            blacklisted: ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"]
+          }
+        else
+          notice << "from the hooked and blacklisted repos lists!\n"
+          files = {
+            hooked: ENV["GISHTANK_GIT_REPOS_HOOKED"],
+            blacklisted: ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"]
+          }
+        end
 
-          notice << "Are you sure you want to proceed? [YynN]"
+        notice << "Are you sure you want to proceed? [YynN]"
 
-          hooked_repos_removed = []
-          blacklisted_repos_removed = []
-          skipped_repos = []
+        hooked_repos_removed = []
+        blacklisted_repos_removed = []
+        skipped_repos = []
 
-          query = -> {
-            changed = []
-            contents = { hooked: IO.readlines(files[:hooked]), blacklisted: IO.readlines(files[:blacklisted]) }
+        query = -> {
+          changed = []
+          contents = {}
+          contents[:hooked] = IO.readlines(files[:hooked]) unless files[:hooked].nil?
+          contents[:blacklisted] = IO.readlines(files[:blacklisted]) unless files[:blacklisted].nil?
 
-            blacklisted_repos_to_remove = []
+          blacklisted_repos_to_remove = []
 
-            files.each do |type, f|
-              if arguments.empty?
-                contents_of_other_type = contents.reject { |k, v| k == type }
+          files.each do |type, f|
+            contents_of_other_type = contents.reject { |k, v| k == type }
 
-                if contents[type].uniq == contents[type] && contents[type].uniq == contents_of_other_type
-                  changed << false
-                else
-                  updated_lines = []
-                  contents[type].each do |line|
-                    if updated_lines.include?(line)
-                      to_add = false
-                    else
-                      if type == :hooked && hooked_repos_removed.include?(line)
-                        to_add = false
-                      else
-                        to_add = true
-                      end
-                    end
-
-                    if contents_of_other_type.values.flatten.include?(line)
-                      if type == :blacklisted
-                        to_add = false if blacklisted_repos_to_remove.include?(line)
-                      else
-                        message = "\nThis repo is in both hooked and blacklisted lists: #{blue(message: line)}"
-                        message << yellow(message: "Which entry do you want to keep? [hHbBsSnN?]")
-
-                        # Options:
-                        # --------
-                        # h or H - Keep the hooked repo
-                        # b or B - Keep the blacklisted repo
-                        # s or S - Do not do anything for now
-                        # n or N - Remove both repos
-
-                        answers = {
-                          h: -> {
-                            blacklisted_repos_to_remove << line
-                            blacklisted_repos_removed << line
-                          },
-
-                          b: -> {
-                            to_add = false
-                            hooked_repos_removed << line
-                          },
-
-                          s: -> {
-                            skipped_repos << line
-                          },
-
-                          n: -> {
-                            to_add = false
-                            blacklisted_repos_to_remove << line
-                            hooked_repos_removed << line
-                            blacklisted_repos_removed << line
-                          },
-
-                          :"?" => -> {
-                            message = "\nh or H - Keep the hooked repo\n"
-                            message << "b or B - Keep the blacklisted repo\n"
-                            message << "s or S - Do not do anything for now\n"
-                            message << "n or N - Remove both repos\n"
-                            message << "? - Show this help message\n"
-
-                            puts message
-                          }
-                        }
-
-                        unless hooked_repos_removed.include?(line) || blacklisted_repos_removed.include?(line) || skipped_repos.include?(line)
-                          complex_prompt message: message, answers: answers, loop_char: "?"
-                        end
-                      end
-                    end
-
-                    if to_add && (!hooked_repos_removed.include?(line) || !blacklisted_repos_removed.include?(line))
-                      updated_lines << line
-                    end
-                  end
-
-                  File.open(f, "w") { |ff| ff.puts updated_lines.join("") unless updated_lines.empty? }
-                  if hooked_repos_removed.count > 0 || blacklisted_repos_removed.count > 0
-                    changed << true
-                  else
-                    changed << false
-                  end
-                end
-              else
-                updated_lines = []
-                contents[type].each do |line|
-                  added = false
+            if contents[type].uniq == contents[type]
+              changed << false
+              next
+            else
+              updated_lines = []
+              contents[type].each do |line|
+                unless arguments.empty?
+                  continue = false
 
                   arguments.each do |arg|
+                    # TODO: Fuzzy find
                     if line =~ /#{arg}/
-                      if updated_lines.include?(line)
-                        if type == :hooked
-                          hooked_repos_removed << line
-                        else
-                          blacklisted_repos_removed << line
-                        end
-                      else
-                        updated_lines << line
-                      end
+                      continue ||= true
                     else
-                      unless added
-                        updated_lines << line
-                        added = true
-                      end
+                      continue ||= false
                     end
                   end
-                end
 
-                changed << (updated_lines != contents[type])
-                if changed.last
-                  File.open(f, "w") do |ff|
-                    ff.puts updated_lines.join("")
+                  unless continue
+                    updated_lines << line
+                    next
                   end
                 end
+
+                if (type == :hooked && hooked_repos_removed.include?(line)) || (type == :blacklisted && blacklisted_repos_removed.include?(line))
+                  next
+                end
+
+                if updated_lines.include?(line)
+                  if type == :hooked
+                    hooked_repos_removed << line
+                  elsif type == :blacklisted
+                    blacklisted_repos_removed << line
+                  end
+
+                  next
+                end
+
+                if contents_of_other_type.values.flatten.include?(line)
+                  if type == :blacklisted
+                    if blacklisted_repos_to_remove.include?(line)
+                      blacklisted_repos_removed << line
+                      to_add = false
+                    else
+                      to_add = true
+                    end
+                  else
+                    message = "\nThis repo is in both hooked and blacklisted lists: #{blue(message: line)}"
+                    message << yellow(message: "Which entry do you want to keep? [hHbBsSnN?]")
+
+                    # Options:
+                    # --------
+                    # h or H - Keep the hooked repo
+                    # b or B - Keep the blacklisted repo
+                    # s or S - Do not do anything for now
+                    # n or N - Remove both repos
+
+                    answers = {
+                      h: -> {
+                        to_add = true
+                        blacklisted_repos_to_remove << line
+                      },
+
+                      b: -> {
+                        to_add = false
+                        hooked_repos_removed << line
+                      },
+
+                      s: -> {
+                        to_add = false
+                        skipped_repos << line
+                      },
+
+                      n: -> {
+                        to_add = false
+                        blacklisted_repos_to_remove << line
+                        hooked_repos_removed << line
+                      },
+
+                      :"?" => -> {
+                        message = "\nh or H - Keep the hooked repo\n"
+                        message << "b or B - Keep the blacklisted repo\n"
+                        message << "s or S - Do not do anything for now\n"
+                        message << "n or N - Remove both repos\n"
+                        message << "? - Show this help message\n"
+
+                        puts message
+                      }
+                    }
+
+                    complex_prompt message: message, answers: answers, loop_char: "?"
+                  end
+                end
+
+                if to_add
+                  updated_lines << line
+                end
+              end
+
+              File.open(f, "w") { |ff| ff.puts updated_lines.join("") unless updated_lines.empty? }
+              if hooked_repos_removed.count > 0 || blacklisted_repos_removed.count > 0
+                changed << true
+              else
+                changed << false
               end
             end
+          end
 
-            if changed.count(false) == files.count
-              puts yellow(message: "\nNothing changed...")
-            else
-              puts
+          if changed.count(false) == files.count
+            puts yellow(message: "\nNothing changed...")
+          else
+            puts
 
-              hooked_repos_removed.uniq.each { |r| puts red(message: "Removed duplicate repo from the hooked list: #{r.chomp}") }
-              blacklisted_repos_removed.uniq.each { |r| puts red(message: "Removed duplicate repo from the blacklisted list: #{r.chomp}") }
-            end
+            hooked_repos_removed.uniq.each { |r| puts red(message: "Removed duplicate repo from the hooked list: #{r.chomp}") }
+            blacklisted_repos_removed.uniq.each { |r| puts red(message: "Removed duplicate repo from the blacklisted list: #{r.chomp}") }
+          end
+        }
+      elsif options =~ /\A-{1,2}h/
+        if arguments.empty?
+          notice = "You are about to remove all the repos\n"
+          notice << "from the hooked list!\n"
+          notice << "Are you sure you want to proceed? [YynN]"
+
+          query = -> {
+            File.unlink ENV["GISHTANK_GIT_REPOS_HOOKED"] if File.file?(ENV["GISHTANK_GIT_REPOS_HOOKED"])
+            puts red(message: "Removed list of hooked repos")
           }
-        elsif options =~ /\A-{1,2}h/
+        else
           notice = "You are about to remove some of the repos\n"
           notice << "from the hooked list!\n"
           notice << "Are you sure you want to proceed? [YynN]"
@@ -278,7 +298,18 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
           files = {
             hooked: ENV["GISHTANK_GIT_REPOS_HOOKED"]
           }
-        elsif options =~ /\A-{1,2}b/
+        end
+      elsif options =~ /\A-{1,2}b/
+        if arguments.empty?
+          notice = "You are about to remove all the repos\n"
+          notice << "from the blacklisted list!\n"
+          notice << "Are you sure you want to proceed? [YynN]"
+
+          query = -> {
+            File.unlink ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"] if File.file?(ENV["GISHTANK_GIT_REPOS_NOT_HOOKED_AND_BLACKLISTED"])
+            puts red(message: "Removed list of blacklisted repos")
+          }
+        else
           notice = "You are about to remove some of the repos\n"
           notice << "from the blacklisted list!\n"
           notice << "Are you sure you want to proceed? [YynN]"
@@ -288,16 +319,16 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
           }
         end
       end
-
-      query ||= -> {
-        changed = []
-        files.each do |type, f|
-          changed << remove_lines_in(file: f, lines: arguments, message: "Do you want to remove this repo from the #{type} list? [YynN] ", success: "Repo removed!")
-        end
-
-        puts yellow(message: "\nNothing changed...") if changed.count(false) == files.count
-      }
     end
+
+    query ||= -> {
+      changed = []
+      files.each do |type, f|
+        changed << remove_lines_in(file: f, lines: arguments, message: "Do you want to remove this repo from the #{type} list? [YynN] ", success: "Repo removed!")
+      end
+
+      puts yellow(message: "\nNothing changed...") if changed.count(false) == files.count
+    }
 
     prompt message: notice, &query
   end
@@ -510,10 +541,8 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
   end
 
   def options
-    return @options if defined? @options
-
-    @options = arguments.dup
-    @options.select! { |a| a.start_with? "-" }
+    return [] if @options.nil? || @options.empty?
+    return @options if @options_cleaned
 
     duplicates = { h: [], b: [], d: [] }
     @options.each do |o|
@@ -523,22 +552,21 @@ class Gish::Commands::Hooks < Gish::Commands::BasicCommand
     end
 
     if duplicates[:d].count > 1
-      raise Gish::Exceptions::DuplicateoptionsError.new(duplicates[:d])
+      raise Gish::Exceptions::DuplicateoptionsError.new(options: duplicates[:d])
     end
 
     if duplicates[:h].count == 1 && duplicates[:b].count == 1
-      raise Gish::Exceptions::InvalidOptionsError.new(duplicates.values)
+      raise Gish::Exceptions::InvalidOptionsError.new options: duplicates.values
     elsif duplicates[:h].count > 1 && duplicates[:b].empty?
-      raise Gish::Exceptions::DuplicateOptionsError.new(duplicates[:h])
+      raise Gish::Exceptions::DuplicateOptionsError.new options: duplicates[:h]
     elsif duplicates[:b].count > 1 && duplicates[:h].empty?
-      raise Gish::Exceptions::DuplicateOptionsError.new(duplicates[:b])
+      raise Gish::Exceptions::DuplicateOptionsError.new options: duplicates[:b]
     elsif duplicates[:h].count > 1 && duplicates[:b].count > 1
       message = "gish: Invalid options with duplicates (#{duplicates.values.join(", ")})"
-      raise Gish::Exceptions::DuplicateOptionsError.new(message: message)
+      raise Gish::Exceptions::DuplicateOptionsError.new message: message
     end
 
-    arguments.reject! { |a| a.start_with? "-" }
-
+    @options_cleaned = true
     @options = @options.join(" ")
   end
 end

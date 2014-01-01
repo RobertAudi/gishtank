@@ -7,5 +7,5 @@ end
 Gish::Exceptions.constants.each do |const|
   exception = Gish::Exceptions.const_get(const)
 
-  exception.send(:include, Gish::Exceptions::Extensions::Compliant) if const.is_a?(Class)
+  exception.send(:include, Gish::Concerns::CompliantError) if const.is_a?(Class)
 end

@@ -318,3 +318,10 @@ This wrapper is coming from `scm_breeze`. I rewrote the ruby script into a class
 ```
 % gish status
 ```
+
+Todo
+----
+
+- Enhance the fuzzy finder. It's too permissive at the moment.
+- Document the git wrapper commands.
+- Rewrite the whole thing with tests

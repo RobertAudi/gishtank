@@ -28,8 +28,10 @@ class Gish::Commands::Commands < Gish::Commands::BasicCommand
 
   def search(raw: false)
     if arguments.empty?
-      puts red(message: "gish: Search query required")
+      puts red(message: "gish: Search query required\n")
       self.status_code = 1
+
+      self.document.search
       return
     end
 

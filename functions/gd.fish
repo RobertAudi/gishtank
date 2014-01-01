@@ -36,9 +36,9 @@ function gd --description="git diff"
   end
 
   if test (count $files) -gt 0
-    git add $files > /dev/null
+    ga $files > /dev/null
     git diff --cached -- $files
-    git reset $files > /dev/null
+    grs $files > /dev/null
   else
     echo " "
     gs
@@ -52,9 +52,9 @@ function __git_diff_default
   else
     set untracked_files (git ls-files --other --exclude-standard)
     if test (count $untracked_files) -gt 0
-      git add $untracked_files > /dev/null
+      ga $untracked_files > /dev/null
       git diff --cached -- $untracked_files
-      git reset $untracked_files > /dev/null
+      grs $untracked_files > /dev/null
     end
   end
 end

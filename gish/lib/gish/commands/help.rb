@@ -28,13 +28,13 @@ class Gish::Commands::Help < Gish::Commands::BasicCommand
     begin
       @help = Gish::Documentation.const_get(command.to_s.capitalize).new
     rescue NameError => e
-      @help = Gish::Documentation::Commands::Git.const_get(command.to_s.capitalize).new
+      @help = Gish::Documentation::Git.const_get(command.to_s.capitalize).new
     end
 
     if subcommands.empty?
       @help.show.usage
     else
-      @help.send subcommands.shift
+      @help.send(subcommands.shift)
     end
   rescue StandardError => e
     if ENV["GISHTANK_ENABLE_GISH_DEBUG_MODE"] == "true"
@@ -47,9 +47,9 @@ class Gish::Commands::Help < Gish::Commands::BasicCommand
   end
 
   def method_missing(method_name, *arguments, &block)
-    if Gish::Commands::LIST.include? method_name.to_s
+    if Gish::Commands::LIST.include?(method_name.to_s)
       send(:help_for, method_name)
-    elsif Gish::Commands::Git::LIST.include? method_name.to_s
+    elsif Gish::Commands::Git::LIST.include?(method_name.to_s)
       send(:help_for, method_name)
     else
       raise Gish::Exceptions::CommandNotFoundError.new method_name

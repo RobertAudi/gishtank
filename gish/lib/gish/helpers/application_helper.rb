@@ -6,8 +6,21 @@ module Gish
         "#{content}\n#{underline}\n\n"
       end
 
-      def columnize(cmd, desc, gap: 20)
-        sprintf("%-#{gap}s %s\n", cmd, desc)
+      def columnize(left, right, formatting: {})
+        formatting[:left_gap] ||= 20
+        formatting[:left_alignment] ||= "left"
+        formatting[:right_gap] ||= ""
+        formatting[:right_alignment] ||= "right"
+        formatting[:middle] ||= " "
+
+        formatting[:left_modifier] = formatting[:left_alignment] == "left" ? "-" : ""
+        formatting[:right_modifier] = formatting[:right_alignment] == "left" ? "-" : ""
+
+        string  = "%#{formatting[:left_modifier]}#{formatting[:left_gap]}s"
+        string << formatting[:middle]
+        string << "%#{formatting[:right_modifier]}#{formatting[:right_gap]}s"
+
+        sprintf("#{string}\n", left, right)
       end
 
       def tab(string, count: 1)
