@@ -2,5 +2,10 @@
 
 require File.join(ENV["GISHTANK_GISH_DIR"], "lib", "gish.rb")
 
-gish = Gish::Task.new arguments: ARGV
-gish.run!
+begin
+  gish = Gish::Task.new arguments: ARGV
+  gish.run!
+rescue Interrupt
+  puts gish.red(message: "\nExiting...")
+  exit
+end
